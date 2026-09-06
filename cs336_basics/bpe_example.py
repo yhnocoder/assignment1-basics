@@ -1,3 +1,6 @@
+from collections import defaultdict
+
+
 corpus = """
 low low low low low
 lower lower widest widest widest
@@ -23,14 +26,11 @@ def pre_tokenize(corpus: str) -> dict[tuple[bytes, ...], int]:
 corpus_counts = pre_tokenize(corpus)
 
 
-def count_pairs(corpus_counts: dict[tuple[bytes, ...], int]):
-    pairs = {}
+def count_pairs(corpus_counts: dict[tuple[bytes, ...], int]) -> dict[tuple[bytes, bytes], int]:
+    pairs = defaultdict(int)
     for tokens, freq in corpus_counts.items():
-        for i in range(len(tokens) - 1):
-            p = (tokens[i], tokens[i + 1])
-            if p not in pairs:
-                pairs[p] = 0
-            pairs[p] += freq
+        for left_token, right_token in zip(tokens, tokens[1:]):
+            pairs[(left_token, right_token)] += freq
     return pairs
 
 
@@ -40,13 +40,8 @@ def merge(corpus_counts: dict[tuple[bytes, ...], int], best: tuple[bytes, bytes]
         new_tokens = []
         i = 0
         while i < len(tokens):
-            if i == len(tokens) - 1:
-                new_tokens.append(tokens[i])
-                i += 1
-                continue
-            t = (tokens[i], tokens[i + 1])
-            if t == best:
-                new_tokens.append(t[0] + t[1])
+            if i != len(tokens) - 1 and (tokens[i], tokens[i + 1]) == best:
+                new_tokens.append(tokens[i] + tokens[i + 1])
                 i += 2
             else:
                 new_tokens.append(tokens[i])
